@@ -1,0 +1,66 @@
+---
+title: "COIL100 MFA"
+output: html_notebook
+---
+
+
+```{r "setup", include=FALSE}
+knitr::opts_knit$set(root.dir = "/Users/vanna/Documents/PPD/DATASET") 
+```
+
+
+```{r}
+library("raster")
+library("EMMIXmfa")
+library("aricode")
+library("OpenImageR")
+library("clusterCrit")
+library("FactoMineR")
+library("R.matlab")
+```
+
+#1 IMPORT THE DATASET
+```{r}
+coil100<- readMat("COIL100.mat")
+coil100_data<-coil100$fea
+true_labels<-as.vector(coil100$gnd)
+```
+#2 MFA ON DATASET
+```{r}
+mfa_coil100<- mfa(coil100_data, 20, 2,  itmax = 1, nkmeans =1 , nrandom = 1,
+tol = 1.e-5, sigma_type = 'common', D_type = 'common', init_clust = NULL,
+init_para = NULL, conv_measure = 'diff', warn_messages = TRUE)
+```
+
+#3 CLUSTERING
+
+```{r}
+
+mfa_label<-mfa_coil100$clust
+
+coil100_ARI_restult=ARI(true_labels,mfa_label)
+print(paste0("ARI: ", coil100_ARI_restult))
+coil100_NMI_restult=NMI(true_labels,mfa_label)
+print(paste0("NMI: ", coil100_NMI_restult))
+
+```
+#4 SEPARABILITY
+##4.1 MFA
+```{r}
+plot(mfa_coil100$Umean,col=true_labels)
+```
+```{r}
+#MFA separabilité
+intCriteria(mfa_coil100$Umean,as.integer(coil100$Y),c("Silhouette","Davies_Bouldin"))
+```
+##4.2 Comparison with PCA
+```{r}
+pca_coil100<-PCA(coil100_data,ncp=5, axes=c(1,2))
+plot(pca_coil100$ind$coord, col=true_labels)
+```
+
+
+```{r}
+#PCA separabilité
+intCriteria(pca_coil100$ind$coord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+```
