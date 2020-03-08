@@ -1,0 +1,152 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+setwd("/Users/vanna/Documents/PPD/")
+      
+path=getwd()
+
+```
+
+```{r}
+install.packages("clusterCrit")
+install.packages(c("digest", "caTools", "bitops"))
+```
+```{r}
+install.packages("png")
+```
+
+#1 IMPORTING LIBRARY
+
+```{r}
+library("png")
+library("colorspace")         
+library("raster")
+library("EMMIXmfa")
+library("aricode")
+library("OpenImageR")
+library("clusterCrit")
+library("FactoMineR")
+library("R.matlab")
+```
+#2 PREPARING DATA
+
+```{r}
+#Plotting of the images of the dataset
+x<-readPNG("coil-20-proc/obj1__0.png")
+print(dim(x))
+image(x,
+      col=gray.colors(10, start=0.3,end=1, gamma=2))
+y<-resizeImage(x,64,64,method="nearest")
+print(dim(y))
+image(y,
+      col=gray.colors(10, start=0.3,end=1, gamma=2))
+```
+
+
+```{r}
+
+# We get all the names from the file that contains the images of coil20
+namelist=list.files("/Users/vanna/Documents/PPD/coil-20-proc/" , pattern=NULL, all.files=FALSE,full.names=FALSE)
+readPNG(namelist[1])
+#Images are resize from 128*128 to 32*32
+#l32 is a list containing 1440 matrix, each matrix represent an image
+l32<-list()
+for (i in 1:length(namelist))
+  l32[[i]]<-resizeImage(readPNG(namelist[i]),32,32,method="nearest")
+```
+
+```{r}
+
+print(dim(l32[[1]]))
+m=as.vector(l32[[1]])
+
+print(length(m))
+
+```
+
+```{r}
+#In order to apply the mfa, we need to convert each matrix as a vector
+data32<- matrix(nrow=1440,ncol = length(m))
+for (i in 1:1440)
+  data32[i,]<-as.vector(l[[i]])
+```
+
+
+
+```{r}
+#We create a vector containing the true labels. Image of the dataset are already sorted
+true_label<- c()
+for (i in 1:20)
+  for (j in 1:72)
+  
+    true_label<-append(true_label,i)
+  
+```
+
+
+```{r}
+#mfa on dataset with 2 dimensions
+model<- mfa(data, 20, 2,  itmax = 2, nkmeans =2 , nrandom = 2,
+tol = 1.e-5, sigma_type = 'common', D_type = 'common', init_clust = NULL,
+init_para = NULL, conv_measure = 'diff', warn_messages = TRUE)
+```
+
+#3 CLUSTERING
+
+```{r}
+mfa_label<-model$clust
+coil20_ARI_restult=ARI(true_label,mfa_label)
+print(paste0("ARI: ", ARI_restult))
+coil20_NMI_restult=NMI(true_label,mfa_label)
+print(paste0("NMI: ", NMI_restult))
+```
+
+#4 SEPARABILITY
+
+
+```{r}
+#plotting the indivuals after MFA
+plot(model$Umean,col=true_label)
+
+```
+
+```{r}
+#plotting the individuals after PCA
+pca_coil<-PCA(data32,ncp=2, axes=c(1,2))
+plot(pca_coil$ind$coord, col=true_label)
+```
+```{r}
+#PCA separabilité
+intCriteria(pca_coil$ind$coord,true_label,c("Silhouette","Davies_Bouldin"))
+
+```
+
+```{r}
+#MFA separabilité
+intCriteria(model$Umean,true_label,c("Silhouette","Davies_Bouldin"))
+```
+#5 YALE
+
+
+```{r}
+setwd("/Users/vanna/Documents/PPD")
+yale<-read.mat("/DATASET/Yale.mat")
+```
+
+
+```{r}
+plot(model2$Umean)
+intCriteria(model2$Umean,true_label,c("Silhouette","Davies_Bouldin"))
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

@@ -1,0 +1,38 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup}
+knitr::opts_knit$set(root.dir = normalizePath("path")) 
+setwd("/Users/vanna/Documents/PPD/DATASET")
+```
+
+
+
+
+```{r}
+setwd("/Users/vanna/Documents/PPD/DATASET")
+path=getwd()
+```
+
+```{r}
+
+install.packages("R.matlab")
+```
+
+```{r}
+library("rmatio")
+library("R.matlab")
+```
+
+```{r}
+readMat("Yale.mat")
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

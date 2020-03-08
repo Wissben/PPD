@@ -1,0 +1,71 @@
+---
+title: "ORL"
+output: html_notebook
+---
+
+```{r}
+setwd("/Users/vanna/Documents/PPD/DATASET")
+```
+
+
+```{r}
+library("raster")
+library("EMMIXmfa")
+library("aricode")
+library("OpenImageR")
+library("clusterCrit")
+library("FactoMineR")
+library("R.matlab")
+```
+
+
+#1 IMPORT THE DATASET
+```{r}
+orl<- readMat("ORL.mat")
+orl_data<-orl$X
+true_labels<-as.vector(orl$Y)
+```
+#2 MFA ON DATASET
+```{r}
+mfa_orl<- mfa(orl_data, 40, 2,  itmax = 2, nkmeans =2 , nrandom = 2,
+tol = 1.e-5, sigma_type = 'common', D_type = 'common', init_clust = NULL,
+init_para = NULL, conv_measure = 'diff', warn_messages = TRUE)
+```
+
+```{r}
+true_labels
+```
+
+#3 CLUSTERING
+
+```{r}
+
+mfa_label<-mfa_orl$clust
+
+orl_ARI_restult=ARI(true_labels,mfa_label)
+print(paste0("ARI: ", orl_ARI_restult))
+orl_NMI_restult=NMI(true_labels,mfa_label)
+print(paste0("NMI: ", orl_NMI_restult))
+
+```
+#4 SEPARABILITY
+##4.1 MFA
+```{r}
+plot(mfa_orl$Umean,col=true_labels)
+```
+
+```{r}
+#MFA separabilité
+intCriteria(mfa_orl$Umean,as.integer(coil20$Y),c("Silhouette","Davies_Bouldin"))
+```
+##4.2 Comparison with PCA
+```{r}
+pca_orl<-PCA(orl$X,ncp=2, axes=c(1,2))
+plot(pca_orl$ind$coord, col=true_labels)
+```
+
+
+```{r}
+#PCA separabilité
+intCriteria(pca_orl$ind$coord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+```

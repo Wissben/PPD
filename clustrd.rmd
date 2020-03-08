@@ -1,0 +1,391 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Setting up the workspace dir
+```{r}
+#uncomment to set current workspace
+#setwd("path/to/project/repo")
+```
+
+# Import the librarires
+```{r}
+#Isntall the necessary libraries
+library("raster")
+library("EMMIXmfa")
+library("aricode")
+library("OpenImageR")
+library("clusterCrit")
+library("FactoMineR")
+library("R.matlab")
+library(clustrd)
+```
+
+# Some helper functions
+```{r}
+##TODO : this function has strange behaviour and was left for developement.
+
+# variate = function(data,labels,n_clus,n_dims = c(2,64), alphas = c(1),rotate = FALSE){
+#   resutls = list()
+#   count = 1
+#   for (nd in n_dims)
+#   {
+#     for (alpha in alphas)
+#     {
+#       res = c()
+#       if(rotate)
+#       {
+#         res = cluspca(data = data,nclus = n_clus, ndim =  nd, alpha = alpha, seed = 1234,rotation = "varimax")
+#         #evaluating the clustering
+#         res['nmi'] = NMI(as.vector(res['cluspca']$cluster),as.vector(labels))
+#         res['ari'] = ARI(as.vector(res['cluspca']$cluster),as.vector(labels))
+#         
+#         #evaluating the dim_reduc
+#         ## Firts pca
+#         pca<-PCA(data,ncp=nd,scale.unit = TRUE)
+#         res['pca_eval'] = intCriteria(pca$ind$coord,as.integer(labels),c("Silhouette","Davies_Bouldin"))
+#         
+#         #Then the method passed in this function (for now it's global and it's cluspca)
+#         res['method_eval'] = intCriteria(res['cluspca']$obscoord,as.integer(labels),c("Silhouette","Davies_Bouldin"))
+#         resutls[count] = res
+#         count = count +1
+#       }
+#       else
+#       {
+#         res['cluspca'] = cluspca(data = data,nclus = n_clus, ndim =  nd, alpha = alpha, seed = 1234)
+#         #evaluating the clustering
+#         res['nmi'] = NMI(as.vector(res['cluspca']$cluster),as.vector(labels))
+#         res['ari'] = ARI(as.vector(res['cluspca']$cluster),as.vector(labels))
+#         
+#         #evaluating the dim_reduc
+#         ## Firts pca
+#         pca<-PCA(data,ncp=nd,scale.unit = TRUE)
+#         res['pca_eval'] = intCriteria(pca$ind$coord,as.integer(labels),c("Silhouette","Davies_Bouldin"))
+#         
+#         #Then the method passed in this function (for now it's global and it's cluspca)
+#         res['method_eval'] = intCriteria(res['cluspca']$obscoord,as.integer(labels),c("Silhouette","Davies_Bouldin"))
+#   
+#         resutls[count] = res
+#         count = count +1
+#       }
+#     }
+#   }
+#   return(resutls)
+# }
+```
+
+# COIL100 Dataset
+## IMPORT THE DATASET
+```{r}
+#CHANGE THE name of the file to USPC.mat
+dataset<- readMat("data/COIL100.mat")
+#change $fea to poissbly X or x 
+features<-dataset$fea
+#change $gnd to possibly y or Y  
+labels<-as.vector(dataset$gnd)
+n_labels = length(unique(labels))
+ndim= 2
+dim(features)
+```
+
+## RUN cluspca wit different parameters
+```{r}
+tandem = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 1, seed = 1234,rotation = "varimax",nstart = 1)
+RKM = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 0.5, seed = 1234,rotation = "varimax")
+FKM = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 0, seed = 1234,rotation = "varimax")
+
+#evaluating the clustering
+##tandem
+res.tandem.nmi = NMI(as.vector(tandem$cluster),as.vector(labels))
+res.tandem.ari = ARI(as.vector(tandem$cluster),as.vector(labels))
+res.tandem.cri = intCriteria(tandem$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.tandem.nmi
+res.tandem.ari
+res.tandel.cri
+
+##RKM
+res.rkm.nmi = NMI(as.vector(RKM$cluster),as.vector(labels))
+res.rkm.ari = ARI(as.vector(RKM$cluster),as.vector(labels))
+res.rkm.cri = intCriteria(rkm$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.rkm.nmi
+res.rkm.ari
+res.rkm.cri
+
+
+##FKM
+res.fkm.nmi = NMI(as.vector(FKM$cluster),as.vector(labels))
+res.fkm.ari = ARI(as.vector(FKM$cluster),as.vector(labels))
+res.fkm.cri = intCriteria(fkm$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.fkm.nmi
+res.fkm.ari
+res.fkm.cri
+
+```
+
+# COIL20
+## IMPORT THE DATASET
+```{r}
+#CHANGE THE name of the file to USPC.mat
+dataset<- readMat("data/COIL20.mat")
+#change $fea to poissbly X or x 
+features<-dataset$fea
+#change $gnd to possibly y or Y  
+labels<-as.vector(dataset$gnd)
+n_labels = length(unique(labels))
+ndim= 2
+dim(features)
+```
+
+## RUN cluspca wit different parameters
+```{r}
+tandem = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 1, seed = 1234,rotation = "varimax",nstart = 1)
+RKM = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 0.5, seed = 1234,rotation = "varimax")
+FKM = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 0, seed = 1234,rotation = "varimax")
+
+plot(tandem$ind$obscoord, col=labels)
+plot(RKM$ind$obscoord, col=labels)
+plot(FKM$ind$obscoord, col=labels)
+
+
+#evaluating the clustering
+##tandem
+res.tandem.nmi = NMI(as.vector(tandem$cluster),as.vector(labels))
+res.tandem.ari = ARI(as.vector(tandem$cluster),as.vector(labels))
+res.tandem.cri = intCriteria(tandem$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.tandem.nmi
+res.tandem.ari
+res.tandel.cri
+
+
+
+
+##RKM
+res.rkm.nmi = NMI(as.vector(RKM$cluster),as.vector(labels))
+res.rkm.ari = ARI(as.vector(RKM$cluster),as.vector(labels))
+res.rkm.cri = intCriteria(rkm$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.rkm.nmi
+res.rkm.ari
+res.rkm.cri
+
+
+##FKM
+res.fkm.nmi = NMI(as.vector(FKM$cluster),as.vector(labels))
+res.fkm.ari = ARI(as.vector(FKM$cluster),as.vector(labels))
+res.fkm.cri = intCriteria(fkm$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.fkm.nmi
+res.fkm.ari
+res.fkm.cri
+
+```
+
+# MNIST 
+## IMPORT THE DATASET
+```{r}
+#CHANGE THE name of the file to USPC.mat
+dataset<- readMat("data/MNIST.mat")
+#change $fea to poissbly X or x 
+features<-dataset$fea
+#change $gnd to possibly y or Y  
+labels<-as.vector(dataset$gnd)
+n_labels = length(unique(labels))
+ndim= 2
+dim(features)
+```
+## RUN cluspca wit different parameters
+```{r}
+tandem = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 1, seed = 1234,rotation = "varimax",nstart = 1)
+RKM = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 0.5, seed = 1234,rotation = "varimax")
+FKM = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 0, seed = 1234,rotation = "varimax")
+
+plot(tandem$ind$obscoord, col=labels)
+plot(RKM$ind$obscoord, col=labels)
+plot(FKM$ind$obscoord, col=labels)
+
+
+
+#evaluating the clustering
+##tandem
+res.tandem.nmi = NMI(as.vector(tandem$cluster),as.vector(labels))
+res.tandem.ari = ARI(as.vector(tandem$cluster),as.vector(labels))
+res.tandem.cri = intCriteria(tandem$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.tandem.nmi
+res.tandem.ari
+res.tandel.cri
+
+##RKM
+res.rkm.nmi = NMI(as.vector(RKM$cluster),as.vector(labels))
+res.rkm.ari = ARI(as.vector(RKM$cluster),as.vector(labels))
+res.rkm.cri = intCriteria(rkm$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.rkm.nmi
+res.rkm.ari
+res.rkm.cri
+
+
+##FKM
+res.fkm.nmi = NMI(as.vector(FKM$cluster),as.vector(labels))
+res.fkm.ari = ARI(as.vector(FKM$cluster),as.vector(labels))
+res.fkm.cri = intCriteria(fkm$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.fkm.nmi
+res.fkm.ari
+res.fkm.cri
+
+```
+# ORL
+## IMPORT THE DATASET
+```{r}
+#CHANGE THE name of the file to USPC.mat
+dataset<- readMat("data/ORL.mat")
+#change $fea to poissbly X or x 
+features<-dataset$X
+#change $gnd to possibly y or Y  
+labels<-as.vector(dataset$Y)
+n_labels = length(unique(labels))
+ndim= 2
+dim(features)
+```
+## RUN cluspca wit different parameters
+```{r}
+tandem = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 1, seed = 1234,rotation = "varimax",nstart = 1)
+RKM = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 0.5, seed = 1234,rotation = "varimax")
+FKM = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 0, seed = 1234,rotation = "varimax")
+
+plot(tandem$ind$obscoord, col=labels)
+plot(RKM$ind$obscoord, col=labels)
+plot(FKM$ind$obscoord, col=labels)
+
+
+
+#evaluating the clustering
+##tandem
+res.tandem.nmi = NMI(as.vector(tandem$cluster),as.vector(labels))
+res.tandem.ari = ARI(as.vector(tandem$cluster),as.vector(labels))
+res.tandem.cri = intCriteria(tandem$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.tandem.nmi
+res.tandem.ari
+res.tandel.cri
+
+##RKM
+res.rkm.nmi = NMI(as.vector(RKM$cluster),as.vector(labels))
+res.rkm.ari = ARI(as.vector(RKM$cluster),as.vector(labels))
+res.rkm.cri = intCriteria(rkm$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.rkm.nmi
+res.rkm.ari
+res.rkm.cri
+
+
+##FKM
+res.fkm.nmi = NMI(as.vector(FKM$cluster),as.vector(labels))
+res.fkm.ari = ARI(as.vector(FKM$cluster),as.vector(labels))
+res.fkm.cri = intCriteria(fkm$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.fkm.nmi
+res.fkm.ari
+res.fkm.cri
+
+```
+# USPS
+## IMPORT THE DATASET
+```{r}
+#CHANGE THE name of the file to USPC.mat
+dataset<- readMat("data/USPS.mat")
+#change $fea to poissbly X or x 
+features<-dataset$X
+#change $gnd to possibly y or Y  
+labels<-as.vector(dataset$y)
+n_labels = length(unique(labels))
+ndim= 2
+dim(features)
+```
+## RUN cluspca wit different parameters
+```{r}
+tandem = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 1, seed = 1234,rotation = "varimax",nstart = 1)
+RKM = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 0.5, seed = 1234,rotation = "varimax")
+FKM = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 0, seed = 1234,rotation = "varimax")
+
+plot(tandem$ind$obscoord, col=labels)
+plot(RKM$ind$obscoord, col=labels)
+plot(FKM$ind$obscoord, col=labels)
+
+
+
+#evaluating the clustering
+##tandem
+res.tandem.nmi = NMI(as.vector(tandem$cluster),as.vector(labels))
+res.tandem.ari = ARI(as.vector(tandem$cluster),as.vector(labels))
+res.tandem.cri = intCriteria(tandem$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.tandem.nmi
+res.tandem.ari
+res.tandel.cri
+
+##RKM
+res.rkm.nmi = NMI(as.vector(RKM$cluster),as.vector(labels))
+res.rkm.ari = ARI(as.vector(RKM$cluster),as.vector(labels))
+res.rkm.cri = intCriteria(rkm$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.rkm.nmi
+res.rkm.ari
+res.rkm.cri
+
+
+##FKM
+res.fkm.nmi = NMI(as.vector(FKM$cluster),as.vector(labels))
+res.fkm.ari = ARI(as.vector(FKM$cluster),as.vector(labels))
+res.fkm.cri = intCriteria(fkm$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.fkm.nmi
+res.fkm.ari
+res.fkm.cri
+
+```
+
+
+# Yale
+## IMPORT THE DATASET
+```{r}
+#CHANGE THE name of the file to USPC.mat
+dataset<- readMat("data/Yale.mat")
+#change $fea to poissbly X or x 
+features<-dataset$X
+#change $gnd to possibly y or Y  
+labels<-as.vector(dataset$Y)
+n_labels = length(unique(labels))
+ndim= 2
+dim(features)
+```
+## RUN cluspca wit different parameters
+```{r}
+tandem = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 1, seed = 1234,rotation = "varimax",nstart = 1)
+RKM = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 0.5, seed = 1234,rotation = "varimax")
+FKM = cluspca(data = features,nclus = n_labels, ndim =  ndim, alpha = 0, seed = 1234,rotation = "varimax")
+
+plot(tandem$ind$obscoord, col=labels)
+plot(RKM$ind$obscoord, col=labels)
+plot(FKM$ind$obscoord, col=labels)
+
+
+
+#evaluating the clustering
+##tandem
+res.tandem.nmi = NMI(as.vector(tandem$cluster),as.vector(labels))
+res.tandem.ari = ARI(as.vector(tandem$cluster),as.vector(labels))
+res.tandem.cri = intCriteria(tandem$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.tandem.nmi
+res.tandem.ari
+res.tandel.cri
+
+##RKM
+res.rkm.nmi = NMI(as.vector(RKM$cluster),as.vector(labels))
+res.rkm.ari = ARI(as.vector(RKM$cluster),as.vector(labels))
+res.rkm.cri = intCriteria(rkm$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.rkm.nmi
+res.rkm.ari
+res.rkm.cri
+
+
+##FKM
+res.fkm.nmi = NMI(as.vector(FKM$cluster),as.vector(labels))
+res.fkm.ari = ARI(as.vector(FKM$cluster),as.vector(labels))
+res.fkm.cri = intCriteria(fkm$obscoord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+res.fkm.nmi
+res.fkm.ari
+res.fkm.cri
+
+```

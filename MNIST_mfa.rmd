@@ -1,0 +1,104 @@
+---
+title: "mnist"
+output: html_notebook
+---
+
+
+```{r "setup", include=FALSE}
+knitr::opts_knit$set(root.dir = "/Users/vanna/Documents/PPD/DATASET") 
+```
+
+
+```{r}
+library("raster")
+library("EMMIXmfa")
+library("aricode")
+library("OpenImageR")
+library("clusterCrit")
+library("FactoMineR")
+library("R.matlab")
+```
+
+#1 IMPORT THE DATASET
+```{r}
+mnist<- readMat("MNIST.mat")
+mnist_data<-mnist$fea
+true_labels<-as.vector(mnist$gnd)
+```
+
+```{r}
+true_labels1<-true_labels[0:10000]
+mnist_data1<-mnist_data[0:10000,]
+print(dim(x))
+print(table(true_labels1))
+```
+
+```{r}
+Noisify <- function(data) {
+
+  if (is.vector(data)) {
+    noise <- runif(length(data), -0.00001, 0.00001)
+    noisified <- data + noise
+  } else {
+    length <- dim(data)[1] * dim(data)[2]
+    noise <- matrix(runif(length, -0.0001, 0.00001), dim(data)[1])
+    noisified <- data + noise
+  }
+  return(noisified)
+}
+
+mnist_data <- Noisify(mnist_data)
+```
+
+#2 MFA ON DATASET
+```{r}
+mfa_mnist<- mfa(mnist_data, 10, 2,  itmax = 1, nkmeans =1 , nrandom = 1,
+tol = 1.e-5, sigma_type = 'common', D_type = 'common', init_clust = NULL,
+init_para = NULL, conv_measure = 'diff', warn_messages = TRUE)
+
+
+mfa_label_mnist<-mfa_mnist$clust
+mnist_ARI_restult=ARI(true_labels,mfa_label_mnist)
+print(paste0("ARI: ", mnist_ARI_restult))
+mnist_NMI_restult=NMI(true_labels,mfa_label_mnist)
+print(paste0("NMI: ", mnist_NMI_restult))
+
+```
+
+```{r}
+true_labels
+
+```
+
+#3 CLUSTERING
+
+```{r}
+
+mfa_label_mnist<-mfa_mnist$clust
+
+mnist_ARI_restult=ARI(true_labels,mfa_label_mnist)
+print(paste0("ARI: ", mnist_ARI_restult))
+mnist_NMI_restult=NMI(true_labels,mfa_label_mnist)
+print(paste0("NMI: ", mnist_NMI_restult))
+
+```
+#4 SEPARABILITY
+##4.1 MFA
+```{r}
+plot(mfa_mnist$Umean,col=true_labels)
+```
+```{r}
+#MFA separabilité
+intCriteria(mfa_mnist$Umean,as.integer(mnist$y),c("Silhouette","Davies_Bouldin"))
+```
+##4.2 Comparison with PCA
+```{r}
+pca_mnist<-PCA(mnist_data,ncp=5, axes=c(1,2))
+plot(pca_mnist$ind$coord, col=true_labels)
+```
+
+
+```{r}
+#PCA separabilité
+intCriteria(pca_mnist$ind$coord,as.integer(true_labels),c("Silhouette","Davies_Bouldin"))
+```
